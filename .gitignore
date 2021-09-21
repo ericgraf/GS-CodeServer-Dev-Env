@@ -1,0 +1,12 @@
+*~
+#*
+*.kubeconfig
+
+.ssh
+*.bash_history
+*.log
+*.vscode
+
+*.ovpn
+env_vars
+/config

@@ -1,0 +1,17 @@
+
+#Example
+export TESTVAR=yes
+
+# Giantswarm related config
+export OPSCTL_GITHUB_TOKEN=""
+export OPSCTL_GPG_PASSWORD=''
+export OPSCTL_OPSGENIE_TOKEN=""
+export OPSCTL_OPSGENIE_TOKEN=""
+
+
+
+# include Giantswarm tools
+export PATH=$PATH:/usr/local/go/bin:/giantswarm/go/bin
+
+# Default shell setup
+export SHELL="/bin/bash"
