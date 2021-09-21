@@ -97,7 +97,7 @@ RUN apt update && \
 
 
 RUN mkdir /giantswarm
-WORKDIR /gaintswarm
+WORKDIR /giantswarm
 
 RUN --mount=type=ssh ssh-keyscan -t rsa github.com >> /tmp/known_hosts 
 
