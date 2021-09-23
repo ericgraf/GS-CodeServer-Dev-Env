@@ -6,6 +6,11 @@ ENV kind_version 0.10.0
 ENV helm_version 3.5.4
 ENV docker_id 998
 
+# clusterctl tool (set to "" to not install, uses git tag/ref/branch/sha)
+ENV clusterctl_version "v0.4.3"
+# Openstack cli tools (set to "" to not install)
+ENV openstack_cli "true"
+
 # set as "" to not install
 # OR set to git sha/branch/tag
 
@@ -18,7 +23,7 @@ ENV gsctl_version=master
 ENV gsctl_release 1.1.0
 ENV gsctl_url https://github.com/giantswarm/gsctl/releases/download/${gsctl_release}/gsctl-${gsctl_release}-linux-amd64.tar.gz
 
-ENV GOPATH /giantswarm/go
+ENV GOPATH /usr/local/go
 ENV GOBIN $GOPATH/bin
 
 RUN apt update && \
@@ -59,19 +64,13 @@ RUN apt-get update && \
 ## Install latest golang
 
 RUN wget -c https://golang.org/dl/go${go_version}.linux-amd64.tar.gz -O - | sudo tar -xz -C /usr/local/
-
 ENV PATH $PATH:/usr/local/go/bin 
-RUN /usr/local/go/bin/go version
-
- 
 
 ## Install kubectl
 
-RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-RUN curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
-#RUN echo "$(<kubectl.sha256) kubectl" | sha256sum --check
-RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+    curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256" && \
+    install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
 ## Install helm
 
@@ -82,23 +81,17 @@ RUN curl -L ${BASE_URL}/${TAR_FILE} |tar xvz && \
     mv linux-amd64/helm /usr/bin/helm && \
     chmod +x /usr/bin/helm 
 
-
 # Install kind
 
-RUN curl -Lo ./kind https://kind.sigs.k8s.io/dl/v${kind_version}/kind-linux-amd64
-RUN chmod +x ./kind
-RUN mv ./kind /usr/local/bin/kind
+RUN curl -Lo ./kind https://kind.sigs.k8s.io/dl/v${kind_version}/kind-linux-amd64 && \
+    chmod +x ./kind && \
+    mv ./kind /usr/local/bin/kind
 
 ## GiantSwarm tools
-
 RUN apt update && \
-    apt install build-essential \
-               -y
-
+    apt install -y build-essential
 
 RUN mkdir /giantswarm
-WORKDIR /gaintswarm
-
 RUN --mount=type=ssh ssh-keyscan -t rsa github.com >> /tmp/known_hosts 
 
 ## opsctl
@@ -125,9 +118,7 @@ WORKDIR /giantswarm
 RUN wget $gsctl_url -O ./gsctl.tar.gz  && \
     tar -xf ./gsctl.tar.gz && \
     chmod +x ./gsctl-${gsctl_release}-linux-amd64 && \
-    mv ./gsctl-${gsctl_release}-linux-amd64 $GOPATH/gsctl
-
-
+    mv ./gsctl-${gsctl_release}-linux-amd64/gsctl $GOBIN/
 
 ## devctl
 
@@ -139,9 +130,8 @@ RUN --mount=type=ssh if [ "$devctl_version" != "" ] ; then \
     make && make install; \
     fi
 
-#RUN --mount=type=ssh git clone git@github.com:giantswarm/kvm-operator.git .
-
 ## openvpn
+
 RUN apt-get -y install debconf-utils && \
     echo resolvconf resolvconf/linkify-resolvconf boolean false | debconf-set-selections && \
     apt-get -y install resolvconf
@@ -153,10 +143,29 @@ RUN apt install -y \
     dialog \
     apt-utils
 
+# Openstack-cli
 
-####### Personal Tools
-#RUN apt install byobu -y 
+RUN if [ "$openstack_cli" != "" ] ; then \
+    apt install -y python-dev python-pip && \
+    pip install python-openstackclient; \
+    fi
 
+# clusterctl_version
+
+# Use prebuilt release
+# RUN if [ "$clusterapi_version" != "" ] ; then \
+#     curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/${clusterapi_version}/clusterctl-linux-amd64 -o /ginatswarm/clusterctl && \
+#     chmod +x /giantswarm/clusterctl && \    
+#     sudo mv /giantswarm/clusterctl /usr/local/bin/clusterctl ; \
+#     fi
+
+RUN --mount=type=ssh if [ "$clusterctl_version" != "" ] ; then \
+    GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/tmp/known_hosts" \
+    git clone git@github.com:kubernetes-sigs/cluster-api.git /giantswarm/clusterctl && \
+    cd /giantswarm/clusterctl && \
+    git checkout ${clusterctl_version} && \
+    make all && cp ./bin/clusterctl /usr/local/bin/clusterctl ; \
+    fi
 
 ##########
 

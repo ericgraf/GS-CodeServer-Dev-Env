@@ -1,7 +1,7 @@
 source /env
 eval $(ssh-agent -s)
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/usr/local/go/bin:/giantswarm/go/bin:/usr/local/go/bin:/giantswarm/go/bin
-
+#export PATH=$PATH:$(go env GOPATH)/bin
+#export GOPATH=$(go env GOPATH)
 
 # Custom functions 
 

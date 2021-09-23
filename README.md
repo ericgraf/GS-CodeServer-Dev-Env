@@ -53,12 +53,12 @@ vi env_vars
 
 ### Giantswarm tools
 
-All GS tools and code repos are stored in /gianswarm repo in container. The GOPATH is set to /giantswarm/go where the binaries will be installed.
+All GS tools and code repos are stored in /gianswarm repo in container. 
 
 * `devctl_version` git tag/sha/branch to use
 * `opsctl_version` git tag/sha/branch to use
 * `gsctl_version` This is currently ignored. 
-* `gsctl_release` / `gsctl_url` url to gsctl release tar. This is pulled and installed into `/giantswarm/go/bin` 
+* `gsctl_release` / `gsctl_url` url to gsctl release tar.
 
 
 
