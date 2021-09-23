@@ -35,8 +35,7 @@ build:
 		--ssh default \
 		-t ${container_name}-image \
 		--progress=plain \
-		. \
-		--no-cache
+		. 
 
 run: hash_password stop
 	
